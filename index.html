@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake Game</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- style -->
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body
+    class="bg-gray-900 text-gray-300 flex items-center justify-center min-h-screen"
+  >
+    <div class="game-container">
+      <h1 class="text-4xl mb-4">SNAKE</h1>
+      <div class="flex justify-between mb-2 text-2xl">
+        <span>Score: <span id="score">0</span></span>
+        <span>High Score: <span id="highScore">0</span></span>
+      </div>
+      <canvas id="gameCanvas"></canvas>
+      <div id="messageBox" class="message-box hidden">
+        <h2 id="messageTitle" class="text-2xl mb-4"></h2>
+        <p id="messageText" class="mb-6"></p>
+        <button
+          id="messageButton"
+          class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+        >
+          Start Game
+        </button>
+      </div>
+      <div class="controls mt-4 grid grid-cols-3 gap-2 max-w-xs mx-auto">
+        <div></div>
+        <button id="upBtn">▲</button>
+        <div></div>
+        <button id="leftBtn">◄</button>
+        <button id="downBtn">▼</button>
+        <button id="rightBtn">►</button>
+      </div>
+    </div>
+
+    <script src="js/script.js"></script>
+  </body>
+</html>
