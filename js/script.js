@@ -3,6 +3,7 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const scoreEl = document.getElementById("score");
 const highScoreEl = document.getElementById("highScore");
+const highScoreNameEl = document.getElementById("highScoreName");
 const speedControls = document.getElementById("speedControls");
 const speedRadioButtons = document.querySelectorAll('input[name="speed"]');
 const pauseBtn = document.getElementById("pauseBtn");
@@ -11,6 +12,7 @@ const messageBox = document.getElementById("messageBox");
 const messageTitle = document.getElementById("messageTitle");
 const messageText = document.getElementById("messageText");
 const messageButton = document.getElementById("messageButton");
+const playerNameInput = document.getElementById("playerNameInput");
 
 // --- Game Constants ---
 const gridSize = 20;
@@ -23,8 +25,12 @@ let food = {};
 let dx = 1; // direction x
 let dy = 0; // direction y
 let score = 0;
-let highScore = localStorage.getItem("snakeHighScore") || 0;
+let highScoreData = JSON.parse(localStorage.getItem("snakeHighScoreData")) || {
+  name: "Player",
+  score: 0,
+};
 let gameSpeed = parseInt(localStorage.getItem("snakeGameSpeed")) || 100;
+let playerName = localStorage.getItem("snakePlayerName") || "";
 let gameLoop;
 let changingDirection = false;
 let isGameOver = true;
@@ -43,9 +49,14 @@ function setupCanvas() {
   tileCountX = canvas.width / gridSize;
   tileCountY = canvas.height / gridSize;
 
-  highScoreEl.textContent = highScore;
+  updateHighScoreDisplay();
   setupSpeedControls();
   showStartMessage();
+}
+
+function updateHighScoreDisplay() {
+  highScoreEl.textContent = highScoreData.score;
+  highScoreNameEl.textContent = `by ${highScoreData.name}`;
 }
 
 function setupSpeedControls() {
@@ -53,7 +64,6 @@ function setupSpeedControls() {
     if (parseInt(radio.value) === gameSpeed) {
       radio.checked = true;
     }
-    // Style the selected radio button's label
     if (radio.checked) {
       radio.nextElementSibling.style.color = "#48bb78";
     } else {
@@ -65,7 +75,7 @@ function setupSpeedControls() {
     if (e.target.name === "speed") {
       gameSpeed = parseInt(e.target.value);
       localStorage.setItem("snakeGameSpeed", gameSpeed);
-      setupSpeedControls(); // Re-apply styles
+      setupSpeedControls();
     }
   });
 }
@@ -78,9 +88,12 @@ function toggleSpeedControls(enabled) {
 
 function showStartMessage() {
   isGameOver = true;
+  isPaused = false;
+  playerNameInput.value = playerName;
+  playerNameInput.style.display = "block";
   toggleSpeedControls(true);
   messageTitle.textContent = "Welcome to Snake!";
-  messageText.textContent = "Use Arrow Keys or Buttons to Play.";
+  messageText.textContent = "Enter your name to play.";
   messageButton.textContent = "Start Game";
   messageBox.classList.remove("hidden");
   messageButton.onclick = startGame;
@@ -88,20 +101,26 @@ function showStartMessage() {
 
 function showGameOverMessage() {
   isGameOver = true;
+  isPaused = false;
   toggleSpeedControls(true);
   messageTitle.textContent = "Game Over!";
-  messageText.textContent = `Your score: ${score}`;
+  messageText.textContent = `${playerName}, your score: ${score}`;
+  playerNameInput.style.display = "none";
   messageButton.textContent = "Play Again";
   messageBox.classList.remove("hidden");
-  messageButton.onclick = startGame;
+  messageButton.onclick = showStartMessage;
 }
 
 function startGame() {
+  playerName = playerNameInput.value || "Anonymous";
+  localStorage.setItem("snakePlayerName", playerName);
+
   isGameOver = false;
+  isPaused = false;
+  pauseBtn.textContent = "❚❚";
   toggleSpeedControls(false);
   messageBox.classList.add("hidden");
 
-  // Reset game state
   snake = [
     { x: Math.floor(tileCountX / 2), y: Math.floor(tileCountY / 2) },
     { x: Math.floor(tileCountX / 2) - 1, y: Math.floor(tileCountY / 2) },
@@ -115,12 +134,12 @@ function startGame() {
   createFood();
 
   if (gameLoop) clearInterval(gameLoop);
-  gameLoop = setInterval(mainLoop, gameSpeed); // Use selected speed
+  gameLoop = setInterval(mainLoop, gameSpeed);
 }
 
 // --- Game Loop ---
 function mainLoop() {
-  if (isGameOver) return;
+  if (isGameOver || isPaused) return;
   changingDirection = false;
   clearCanvas();
   moveSnake();
@@ -178,10 +197,10 @@ function moveSnake() {
   if (hasEatenFood) {
     score += 10;
     scoreEl.textContent = score;
-    if (score > highScore) {
-      highScore = score;
-      highScoreEl.textContent = highScore;
-      localStorage.setItem("snakeHighScore", highScore);
+    if (score > highScoreData.score) {
+      highScoreData = { name: playerName, score: score };
+      localStorage.setItem("snakeHighScoreData", JSON.stringify(highScoreData));
+      updateHighScoreDisplay();
     }
     createFood();
   } else {
@@ -253,6 +272,7 @@ function togglePause() {
     clearInterval(gameLoop);
     pauseBtn.textContent = "►"; // Play icon
     messageTitle.textContent = "Paused";
+    playerNameInput.style.display = "none";
     messageText.textContent = "Press 'P' or the button to resume.";
     messageButton.textContent = "Resume";
     messageBox.classList.remove("hidden");
@@ -280,7 +300,7 @@ document
 pauseBtn.addEventListener("click", togglePause);
 
 function setDirection(newDx, newDy) {
-  if (isGameOver || changingDirection) return;
+  if (isGameOver || changingDirection || isPaused) return;
   changingDirection = true;
 
   const goingUp = dy === -1;

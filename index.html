@@ -17,37 +17,28 @@
   >
     <div class="game-container">
       <h1 class="text-4xl mb-4">SNAKE</h1>
-      <div class="flex justify-between items-center mb-2 text-2xl md:text-xl">
+      <div class="flex justify-between items-center mb-2 text-lg sm:text-xl">
         <div class="flex items-center space-x-4">
           <span>Score: <span id="score">0</span></span>
-          <span>High Score: <span id="highScore">0</span></span>
         </div>
-        <div
-          id="speedControls"
-          class="speed-controls flex items-center space-x-2 text-xs sm:text-sm"
-        >
-          <span>Speed:</span>
-          <label>
-            <input type="radio" name="speed" value="300" class="sr-only" />
-            <span>Slow</span>
-          </label>
-          <label>
-            <input type="radio" name="speed" value="100" class="sr-only" />
-            <span>Normal</span>
-          </label>
-          <label>
-            <input type="radio" name="speed" value="70" class="sr-only" />
-            <span>Fast</span>
-          </label>
+        <div class="text-xs sm:text-sm text-right">
+          <span>High Score: <span id="highScore">0</span></span>
+          <div id="highScoreName" class="text-gray-500"></div>
         </div>
       </div>
       <canvas id="gameCanvas"></canvas>
       <div id="messageBox" class="message-box hidden">
         <h2 id="messageTitle" class="text-2xl mb-4"></h2>
-        <p id="messageText" class="mb-6"></p>
+        <p id="messageText" class="mb-2"></p>
+        <input
+          type="text"
+          id="playerNameInput"
+          placeholder="Enter Name"
+          maxlength="10"
+        />
         <button
           id="messageButton"
-          class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+          class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded block w-full mt-4"
         >
           Start Game
         </button>
@@ -55,12 +46,38 @@
       <div class="controls mt-4 grid grid-cols-3 gap-2 max-w-xs mx-auto">
         <div></div>
         <button id="upBtn">▲</button>
-        <div></div>
+        <div
+          id="speedControls"
+          class="speed-controls flex flex-col items-center justify-center text-xs"
+        >
+          <label
+            ><input
+              type="radio"
+              name="speed"
+              value="150"
+              class="sr-only"
+            /><span>Slow</span></label
+          >
+          <label
+            ><input
+              type="radio"
+              name="speed"
+              value="100"
+              class="sr-only"
+            /><span>Normal</span></label
+          >
+          <label
+            ><input type="radio" name="speed" value="70" class="sr-only" /><span
+              >Fast</span
+            ></label
+          >
+        </div>
         <button id="leftBtn">◄</button>
         <button id="pauseBtn">❚❚</button>
         <button id="rightBtn">►</button>
         <div></div>
         <button id="downBtn">▼</button>
+        <div></div>
       </div>
     </div>
 
