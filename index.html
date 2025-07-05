@@ -17,9 +17,29 @@
   >
     <div class="game-container">
       <h1 class="text-4xl mb-4">SNAKE</h1>
-      <div class="flex justify-between mb-2 text-2xl">
-        <span>Score: <span id="score">0</span></span>
-        <span>High Score: <span id="highScore">0</span></span>
+      <div class="flex justify-between items-center mb-2 text-2xl md:text-xl">
+        <div class="flex items-center space-x-4">
+          <span>Score: <span id="score">0</span></span>
+          <span>High Score: <span id="highScore">0</span></span>
+        </div>
+        <div
+          id="speedControls"
+          class="speed-controls flex items-center space-x-2 text-xs sm:text-sm"
+        >
+          <span>Speed:</span>
+          <label>
+            <input type="radio" name="speed" value="300" class="sr-only" />
+            <span>Slow</span>
+          </label>
+          <label>
+            <input type="radio" name="speed" value="100" class="sr-only" />
+            <span>Normal</span>
+          </label>
+          <label>
+            <input type="radio" name="speed" value="70" class="sr-only" />
+            <span>Fast</span>
+          </label>
+        </div>
       </div>
       <canvas id="gameCanvas"></canvas>
       <div id="messageBox" class="message-box hidden">
@@ -37,8 +57,10 @@
         <button id="upBtn">▲</button>
         <div></div>
         <button id="leftBtn">◄</button>
-        <button id="downBtn">▼</button>
+        <button id="pauseBtn">❚❚</button>
         <button id="rightBtn">►</button>
+        <div></div>
+        <button id="downBtn">▼</button>
       </div>
     </div>
 
