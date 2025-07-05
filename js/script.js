@@ -35,6 +35,9 @@ let gameLoop;
 let changingDirection = false;
 let isGameOver = true;
 let isPaused = false;
+let foodsEatenCount = 0;
+let isBonusFoodActive = false;
+let bonusFoodTimer = null;
 
 // --- Initial Setup ---
 window.addEventListener("load", setupCanvas);
@@ -130,6 +133,8 @@ function startGame() {
   dy = 0;
   score = 0;
   scoreEl.textContent = score;
+  foodsEatenCount = 0;
+  hideBonusFood();
 
   createFood();
 
@@ -144,6 +149,7 @@ function mainLoop() {
   clearCanvas();
   moveSnake();
   drawFood();
+  drawBonusFood();
   drawSnake();
   checkCollision();
 }
@@ -194,17 +200,30 @@ function moveSnake() {
   snake.unshift(head);
 
   const hasEatenFood = snake[0].x === food.x && snake[0].y === food.y;
+  const hasEatenBonusFood =
+    isBonusFoodActive &&
+    snake[0].x === bonusFood.x &&
+    snake[0].y === bonusFood.y;
+
   if (hasEatenFood) {
     score += 10;
-    scoreEl.textContent = score;
-    if (score > highScoreData.score) {
-      highScoreData = { name: playerName, score: score };
-      localStorage.setItem("snakeHighScoreData", JSON.stringify(highScoreData));
-      updateHighScoreDisplay();
+    foodsEatenCount++;
+    if (foodsEatenCount % 5 === 0) {
+      createBonusFood();
     }
     createFood();
+  } else if (hasEatenBonusFood) {
+    score += 50;
+    hideBonusFood();
   } else {
     snake.pop();
+  }
+
+  scoreEl.textContent = score;
+  if (score > highScoreData.score) {
+    highScoreData = { name: playerName, score: score };
+    localStorage.setItem("snakeHighScoreData", JSON.stringify(highScoreData));
+    updateHighScoreDisplay();
   }
 }
 
@@ -217,7 +236,9 @@ function createFood() {
     let isFoodOnSnake = snake.some(
       (part) => part.x === foodX && part.y === foodY
     );
-    if (!isFoodOnSnake) break;
+    let isFoodOnBonus =
+      isBonusFoodActive && foodX === bonusFood.x && foodY === bonusFood.y;
+    if (!isFoodOnSnake && !isFoodOnBonus) break;
   }
   food = { x: foodX, y: foodY };
 }
@@ -235,6 +256,60 @@ function drawFood() {
   );
   ctx.fill();
   ctx.stroke();
+}
+
+function createBonusFood() {
+  isBonusFoodActive = true;
+  let foodX, foodY;
+  while (true) {
+    foodX = Math.floor(Math.random() * tileCountX);
+    foodY = Math.floor(Math.random() * tileCountY);
+    let isFoodOnSnake = snake.some(
+      (part) => part.x === foodX && part.y === foodY
+    );
+    let isFoodOnRegular = foodX === food.x && foodY === food.y;
+    if (!isFoodOnSnake && !isFoodOnRegular) break;
+  }
+  bonusFood = { x: foodX, y: foodY };
+
+  if (bonusFoodTimer) clearTimeout(bonusFoodTimer);
+  bonusFoodTimer = setTimeout(hideBonusFood, 5000); // Bonus food lasts 5 seconds
+}
+
+function hideBonusFood() {
+  isBonusFoodActive = false;
+  bonusFood = {};
+  if (bonusFoodTimer) clearTimeout(bonusFoodTimer);
+}
+
+function drawBonusFood() {
+  if (!isBonusFoodActive) return;
+
+  // --- Twinkle Effect ---
+  // Use a sine wave based on the current time to create a smooth pulse
+  const pulse = Math.sin(Date.now() / 150) * 2; // Adjust divisor for speed, multiplier for size
+  const radius = (gridSize / 2) * 0.8 + pulse;
+
+  // --- Glow Effect ---
+  ctx.shadowColor = "#f6e05e"; // Gold glow
+  ctx.shadowBlur = 15;
+
+  // Draw the bonus food
+  ctx.fillStyle = "#f6e05e"; // Yellow/Gold
+  ctx.strokeStyle = "#d69e2e";
+  ctx.beginPath();
+  ctx.arc(
+    bonusFood.x * gridSize + gridSize / 2,
+    bonusFood.y * gridSize + gridSize / 2,
+    radius, // Use the dynamic, twinkling radius
+    0,
+    2 * Math.PI
+  );
+  ctx.fill();
+  ctx.stroke();
+
+  // Reset shadow so it doesn't affect other elements
+  ctx.shadowBlur = 0;
 }
 
 // --- Collision Detection ---
@@ -271,6 +346,7 @@ function togglePause() {
   if (isPaused) {
     clearInterval(gameLoop);
     pauseBtn.textContent = "►"; // Play icon
+    if (isBonusFoodActive) clearTimeout(bonusFoodTimer); // Pause the bonus food timer
     messageTitle.textContent = "Paused";
     playerNameInput.style.display = "none";
     messageText.textContent = "Press 'P' or the button to resume.";
@@ -278,6 +354,10 @@ function togglePause() {
     messageBox.classList.remove("hidden");
     messageButton.onclick = togglePause;
   } else {
+    if (isBonusFoodActive) {
+      // Resume the bonus food timer
+      bonusFoodTimer = setTimeout(hideBonusFood, 5000);
+    }
     pauseBtn.textContent = "❚❚"; // Pause icon
     messageBox.classList.add("hidden");
     gameLoop = setInterval(mainLoop, gameSpeed);
